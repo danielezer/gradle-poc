@@ -1,3 +1,14 @@
+properties(
+    [
+        parameters(
+            [
+                string(defaultValue: '', name: 'RT_REPO_URL')
+            ]
+        )
+
+    ]
+)
+
 timestamps {
     node {
         stage('Checkout') {
@@ -5,7 +16,10 @@ timestamps {
         }
 
         stage('Build') {
-            sh "./gradlew --no-daemon clean build"
+            if (! params.RT_REPO_URL) {
+                throw new Exception("Missing required parameter RT_REPO_URL")
+            }
+            sh "./gradlew --no-daemon clean build -PrtRepoUrl=${params.RT_REPO_URL}"
         }
     }
 }
