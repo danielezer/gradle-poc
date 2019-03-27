@@ -6,7 +6,7 @@ properties(
                 string(description: 'Resolver repo name', defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
                 string(description: 'Deployer repo name', defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
                 string(description: 'SonarQube URL', defaultValue: '', name: 'SONAR_URL'),
-                string(description: 'SonarQube Project Key', defaultValue: '', name: 'SONAR_PROJECT'),
+                string(description: 'SonarQube Project Key', defaultValue: 'test-gradle', name: 'SONAR_PROJECT'),
                 string(description: 'SonarQube Token', defaultValue: '', name: 'SONAR_TOKEN'),
                 booleanParam(description: 'deployer repo name', defaultValue: true, name: 'XRAY_FAIL_BUILD'),
             ]
