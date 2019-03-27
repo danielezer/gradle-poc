@@ -6,7 +6,7 @@ properties(
                 string(description: 'Resolver repo name', defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
                 string(description: 'Deployer repo name', defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
                 string(description: 'SonarQube URL', defaultValue: '', name: 'SONAR_URL'),
-                string(description: 'SonarQube Project Key', defaultValue: 'test-gradle', name: 'SONAR_PROJECT'),
+                string(description: 'SonarQube Token', defaultValue: '', name: 'SONAR_TOKEN'),
                 string(description: 'SonarQube Token', defaultValue: '', name: 'SONAR_TOKEN'),
                 booleanParam(description: 'deployer repo name', defaultValue: true, name: 'XRAY_FAIL_BUILD'),
             ]
@@ -26,7 +26,7 @@ timestamps {
         }
 
         stage('Build & Deploy') {
-            if (! params.RT_SERVER_ID || ! params.RT_RESOLVER_REPO || ! params.RT_DEPLOYER_REPO || ! SONAR_URL || ! SONAR_TOKEN || ! SONAR_PROJECT) {
+            if (! params.RT_SERVER_ID || ! params.RT_RESOLVER_REPO || ! params.RT_DEPLOYER_REPO || ! SONAR_URL || ! SONAR_TOKEN) {
                 throw new Exception("Missing required parameter")
             }
 
@@ -43,7 +43,7 @@ timestamps {
         }
 
         stage('Sonar scan') {
-            String gradleTasks = "sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT_KEY} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
+            String gradleTasks = "sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
             rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
 
         }
