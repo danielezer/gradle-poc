@@ -14,6 +14,8 @@ properties(
 
 timestamps {
     node {
+        def buildInfo
+        def server
         stage('Checkout') {
             checkout scm
         }
@@ -23,12 +25,12 @@ timestamps {
                 throw new Exception("Missing required parameter")
             }
 
-            def server = Artifactory.server params.RT_SERVER_ID
+            server = Artifactory.server params.RT_SERVER_ID
             def rtGradle = Artifactory.newGradleBuild()
             rtGradle.resolver server: server, repo: params.RT_RESOLVER_REPO
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             rtGradle.useWrapper = true
-            def buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: 'clean artifactoryPublish'
+            buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: 'clean artifactoryPublish'
             buildInfo.env.collect()
             server.publishBuildInfo buildInfo
         }
