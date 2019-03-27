@@ -19,6 +19,7 @@ timestamps {
     node {
         def buildInfo
         def server
+        def rtUrl
         stage('Checkout') {
             checkout scm
         }
@@ -33,7 +34,7 @@ timestamps {
             rtGradle.resolver server: server, repo: params.RT_RESOLVER_REPO
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             rtGradle.useWrapper = true
-            def rtUrl = server.url
+            rtUrl = server.url
             String gradleTasks = "clean artifactoryPublish -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO}"
             buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
             buildInfo.env.collect()
