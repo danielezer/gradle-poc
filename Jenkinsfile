@@ -20,6 +20,7 @@ timestamps {
         def buildInfo
         def server
         def rtUrl
+        def rtGradle
         stage('Checkout') {
             checkout scm
         }
@@ -30,7 +31,7 @@ timestamps {
             }
 
             server = Artifactory.server params.RT_SERVER_ID
-            def rtGradle = Artifactory.newGradleBuild()
+            rtGradle = Artifactory.newGradleBuild()
             rtGradle.resolver server: server, repo: params.RT_RESOLVER_REPO
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             rtGradle.useWrapper = true
@@ -42,7 +43,9 @@ timestamps {
         }
 
         stage('Sonar scan') {
-            sh "./gradlew --no-daemon sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT_KEY} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
+            String gradleTasks = "sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT_KEY} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
+            rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
+
         }
 
         stage('Xray Scan') {
