@@ -28,7 +28,7 @@ timestamps {
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             rtGradle.useWrapper = true
             def buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: 'clean artifactoryPublish'
-            buildInfo.env.capture = true
+            buildInfo.env.collect()
             server.publishBuildInfo buildInfo
         }
     }
