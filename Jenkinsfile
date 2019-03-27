@@ -5,7 +5,7 @@ properties(
                 string(description: 'Artifactory server ID', defaultValue: 'artifactory-entplus-us-west', name: 'RT_SERVER_ID'),
                 string(description: 'resolver repo name', defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
                 string(description: 'deployer repo name', defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
-                booleanParam(description: 'deployer repo name', defaultValue: true, name: 'RT_DEPLOYER_REPO'),
+                booleanParam(description: 'deployer repo name', defaultValue: true, name: 'XRAY_FAIL_BUILD'),
             ]
         )
 
