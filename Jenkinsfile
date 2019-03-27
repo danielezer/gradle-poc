@@ -31,7 +31,8 @@ timestamps {
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             rtGradle.useWrapper = true
             def rtUrl = server.url
-            buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: "clean artifactoryPublish -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO}"
+            String gradleTasks = "clean artifactoryPublish -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO}"
+            buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
             buildInfo.env.collect()
             server.publishBuildInfo buildInfo
         }
