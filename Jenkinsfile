@@ -1,5 +1,5 @@
 timestamps {
-    node('generic') {
+    node {
         stage('Checkout') {
             checkout scm
         }
