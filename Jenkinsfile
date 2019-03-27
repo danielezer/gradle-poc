@@ -5,7 +5,7 @@ timestamps {
         }
 
         stage('Build') {
-            sh "./gradlew build"
+            sh "./gradlew --no-daemon clean build"
         }
     }
 }
