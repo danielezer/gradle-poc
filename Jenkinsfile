@@ -39,7 +39,7 @@ timestamps {
             def scanConfig = [
                     'buildName'      : buildInfo.name,
                     'buildNumber'    : buildInfo.number,
-                    'failBuild'      : ${params.XRAY_FAIL_BUILD}
+                    'failBuild'      : params.XRAY_FAIL_BUILD
             ]
             def scanResult = server.xrayScan scanConfig
 
