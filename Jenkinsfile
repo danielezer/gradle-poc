@@ -2,9 +2,9 @@ properties(
     [
         parameters(
             [
-                string(defaultValue: 'artifactory-entplus-us-west', name: 'RT_SERVER_ID'),
-                string(defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
-                string(defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
+                string(description: 'Artifactory server ID', defaultValue: 'artifactory-entplus-us-west', name: 'RT_SERVER_ID'),
+                string(description: 'resolver repo name', defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
+                string(description: 'deployer repo name', defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
             ]
         )
 
@@ -27,8 +27,8 @@ timestamps {
             rtGradle.resolver server: server, repo: params.RT_RESOLVER_REPO
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             rtGradle.useWrapper = true
-            buildInfo.env.capture = true
             def buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: 'clean artifactoryPublish'
+            buildInfo.env.capture = true
             server.publishBuildInfo buildInfo
         }
     }
