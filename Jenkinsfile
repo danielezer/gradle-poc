@@ -13,16 +13,6 @@ properties(
     ]
 )
 
-@NonCPS
-def readReport(String reportFile) {
-    String contents = new File(reportFile).getText('UTF-8')
-    Properties properties = new Properties()
-    InputStream is = new ByteArrayInputStream(contents.getBytes());
-    properties.load(is)
-    is.close()
-    properties
-}
-
 def restGet(String url) {
     def res = httpRequest url: url, consoleLogResponseBody: true
     def httpStatusCode = res.getStatus()
@@ -33,9 +23,15 @@ def restGet(String url) {
     respContent
 }
 
-def getTaskResult(String taskUrl) {
-    def res = restGet(taskUrl)
-    readJSON text: res
+Properties getProperties(filename) {
+    def properties = new Properties()
+    properties.load(new StringReader(readFile(filename)))
+    return properties
+}
+
+@NonCPS
+def jsonParse(text) {
+    return new groovy.json.JsonSlurperClassic().parseText(text);
 }
 
 timestamps {
@@ -73,12 +69,15 @@ timestamps {
                 }
             }
 
-            println qg.taskId
+            properties = getProperties("${WORKSPACE}/build/sonar/report-task.txt")
+
+            ceTaskReport = restGet(properties.ceTaskUrl)
+            ceTaskJson = jsonParse(ceTaskReport)
 
 
             rtGradle.deployer.addProperty("sonar.ceTaskId", properties.ceTaskId)
             rtGradle.deployer.addProperty("sonar.dashboardUrl", properties.dashboardUrl)
-            rtGradle.deployer.addProperty("sonar.task.status", taskResult.task.status)
+            rtGradle.deployer.addProperty("sonar.task.status", ceTaskJson.task.status)
 
             String publishGradleTasks = "clean artifactoryPublish -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Pversion=1.${env.BUILD_NUMBER}"
             buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: publishGradleTasks
