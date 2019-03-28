@@ -25,6 +25,21 @@ def readReport(String reportFile) {
     properties
 }
 
+def restGet(String url) {
+    def res = httpRequest url: url, consoleLogResponseBody: true
+    def httpStatusCode = res.getStatus()
+    def respContent = res.getContent()
+    if (httpStatusCode.startsWith("4") || httpStatusCode.startsWith("5")) {
+        throw new Exception("HTTP request failed: ${respContent}")
+    }
+    respContent
+}
+
+def getTaskResult(String taskUrl) {
+    def res = restGet(taskUrl)
+    readJson text: res
+}
+
 timestamps {
     node {
         def buildInfo
@@ -46,7 +61,14 @@ timestamps {
             rtGradle.resolver server: server, repo: params.RT_RESOLVER_REPO
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             def properties = readReport("$WORKSPACE/build/sonar/report-task.txt")
-            rtGradle.deployer.addProperty("ceTaskId", properties.ceTaskId)
+            rtGradle.deployer.addProperty("sonar.ceTaskId", properties.ceTaskId)
+            rtGradle.deployer.addProperty("sonar.dashboardUrl", properties.dashboardUrl)
+            def taskResult = getTaskResult(properties.ceTaskUrl)
+            println taskResult.task.status
+            rtGradle.deployer.addProperty("sonar.task.status", taskResult.task.status)
+
+
+
             rtGradle.useWrapper = true
             rtUrl = server.url
             String gradleTasks = "clean artifactoryPublish sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN} -Pversion=1.${env.BUILD_NUMBER}"
