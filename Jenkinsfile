@@ -37,7 +37,7 @@ def restGet(String url) {
 
 def getTaskResult(String taskUrl) {
     def res = restGet(taskUrl)
-    readJson text: res
+    readJSON text: res
 }
 
 timestamps {
@@ -88,6 +88,5 @@ timestamps {
 
             echo scanResult as String
         }
-
     }
 }
