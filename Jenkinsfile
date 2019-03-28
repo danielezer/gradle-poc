@@ -22,8 +22,8 @@ def readReport(reportFile) {
     InputStream is = new ByteArrayInputStream(content.getBytes());
     properties.load(is)
     is.close()
-    print properties.getClass();
-    properties;
+    print properties.getClass()
+    properties
 }
 
 timestamps {
