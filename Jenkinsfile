@@ -46,6 +46,15 @@ timestamps {
             String gradleTasks = "sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
             rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
 
+            Properties properties = new Properties()
+            File propertiesFile = new File('build/sonar/report-task.txte')
+            propertiesFile.withInputStream {
+                properties.load(it)
+            }
+
+            println properties.ceTaskId
+
+
         }
 
         stage('Xray Scan') {
