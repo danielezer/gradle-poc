@@ -41,7 +41,7 @@ def getTaskResult(String taskUrl) {
 }
 
 timestamps {
-    node('dind-cloud') {
+    node('k8s') {
         def buildInfo
         def server
         def rtUrl
