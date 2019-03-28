@@ -29,7 +29,7 @@ def restGet(String url) {
     def res = httpRequest url: url, consoleLogResponseBody: true
     def httpStatusCode = res.getStatus()
     def respContent = res.getContent()
-    if (httpStatusCode.startsWith("4") || httpStatusCode.startsWith("5")) {
+    if (httpStatusCode >= 400) {
         throw new Exception("HTTP request failed: ${respContent}")
     }
     respContent
