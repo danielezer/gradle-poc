@@ -49,7 +49,7 @@ timestamps {
             checkout scm
             server = Artifactory.server params.RT_SERVER_ID
             def rtUrl = server.url
-            rtResolverRepoUrl = ${rtUrl}/${params.RT_RESOLVER_REPO}
+            rtResolverRepoUrl = "${rtUrl}/${params.RT_RESOLVER_REPO}"
         }
 
         stage('Prepare Gradle Environment') {
