@@ -31,16 +31,15 @@ Properties getProperties(filename) {
 
 @NonCPS
 def jsonParse(text) {
-    return new groovy.json.JsonSlurperClassic().parseText(text);
+    return new groovy.json.JsonSlurperClassic().parseText(text)
 }
 
 timestamps {
     node('k8s') {
         def buildInfo
         def server
-        def rtUrl
         def rtGradle
-        def qg
+        def rtResolverRepoUrl
 
         if (! params.RT_SERVER_ID || ! params.RT_RESOLVER_REPO || ! params.RT_DEPLOYER_REPO || ! params.SONAR_SERVER_ID) {
             throw new Exception("Missing required parameter")
@@ -48,41 +47,44 @@ timestamps {
 
         stage('Checkout') {
             checkout scm
+            server = Artifactory.server params.RT_SERVER_ID
+            def rtUrl = server.url
+            rtResolverRepoUrl = ${rtUrl}/${params.RT_RESOLVER_REPO}
         }
 
-        stage('Build & Deploy') {
-            server = Artifactory.server params.RT_SERVER_ID
+        stage('Prepare Gradle Environment') {
             rtGradle = Artifactory.newGradleBuild()
             rtGradle.resolver server: server, repo: params.RT_RESOLVER_REPO
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             rtGradle.useWrapper = true
-            rtUrl = server.url
+        }
+
+        stage('SonarQube scan') {
             withSonarQubeEnv(params.SONAR_SERVER_ID) {
-                String sonarGradleTasks = "clean sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Pversion=1.${env.BUILD_NUMBER}"
+                String sonarGradleTasks = "clean sonarqube -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=1.${env.BUILD_NUMBER}"
                 buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: sonarGradleTasks
             }
 
             timeout(time: 5, unit: 'MINUTES') {
-                qg = waitForQualityGate()
+                def qg = waitForQualityGate()
                 if (qg.status != 'OK') {
                     error "Pipeline aborted due to quality gate failure: ${qg.status}"
                 }
             }
 
             properties = getProperties("${WORKSPACE}/build/sonar/report-task.txt")
-
             ceTaskReport = restGet(properties.ceTaskUrl)
             ceTaskJson = jsonParse(ceTaskReport)
-
-
             rtGradle.deployer.addProperty("sonar.ceTaskId", properties.ceTaskId)
             rtGradle.deployer.addProperty("sonar.dashboardUrl", properties.dashboardUrl)
             rtGradle.deployer.addProperty("sonar.task.status", ceTaskJson.task.status)
 
-            String publishGradleTasks = "clean artifactoryPublish -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Pversion=1.${env.BUILD_NUMBER}"
+        }
+
+        stage('Build & Deploy') {
+            String publishGradleTasks = "clean artifactoryPublish -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=1.${env.BUILD_NUMBER}"
             buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: publishGradleTasks
             buildInfo.env.collect()
-
             server.publishBuildInfo buildInfo
         }
 
@@ -93,7 +95,6 @@ timestamps {
                     'failBuild'      : params.XRAY_FAIL_BUILD
             ]
             def scanResult = server.xrayScan scanConfig
-
             echo scanResult as String
         }
     }
