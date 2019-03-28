@@ -49,7 +49,7 @@ timestamps {
             rtGradle.deployer.addProperty("ceTaskId", properties.ceTaskId)
             rtGradle.useWrapper = true
             rtUrl = server.url
-            String gradleTasks = "clean artifactoryPublish sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
+            String gradleTasks = "clean artifactoryPublish sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN} -Pversion=1.${env.BUILD_NUMBER}"
             buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
             buildInfo.env.collect()
 
