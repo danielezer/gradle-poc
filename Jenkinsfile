@@ -36,25 +36,18 @@ timestamps {
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
             rtGradle.useWrapper = true
             rtUrl = server.url
-            String gradleTasks = "clean artifactoryPublish -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO}"
+            String gradleTasks = "clean artifactoryPublish sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
+
+            def content = readFile "$WORKSPACE/build/sonar/report-task.txt"
             buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
             buildInfo.env.collect()
-            server.publishBuildInfo buildInfo
-        }
-
-        stage('Sonar scan') {
-            String gradleTasks = "sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
-            rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
 
             Properties properties = new Properties()
-            File propertiesFile = new File('build/sonar/report-task.txte')
-            propertiesFile.withInputStream {
-                properties.load(it)
-            }
-
-            println properties.ceTaskId
-
-
+            InputStream is = new ByteArrayInputStream(content.getBytes());
+            properties.load(is)
+            is.close()
+            rtGradle.deployer.addProperty("ceTaskId", properties.ceTaskId)
+            server.publishBuildInfo buildInfo
         }
 
         stage('Xray Scan') {
