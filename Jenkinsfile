@@ -15,12 +15,24 @@ properties(
     ]
 )
 
+@NonCPS
+def readReport(reportFile) {
+    def content = readFile reportFile
+    Properties properties = new Properties()
+    InputStream is = new ByteArrayInputStream(content.getBytes());
+    properties.load(is)
+    is.close()
+    print properties.getClass();
+    properties;
+}
+
 timestamps {
     node {
         def buildInfo
         def server
         def rtUrl
         def rtGradle
+
         stage('Checkout') {
             checkout scm
         }
@@ -37,15 +49,10 @@ timestamps {
             rtGradle.useWrapper = true
             rtUrl = server.url
             String gradleTasks = "clean artifactoryPublish sonarqube -PrtRepoUrl=${rtUrl}/${params.RT_RESOLVER_REPO} -Dsonar.projectKey=${params.SONAR_PROJECT} -Dsonar.host.url=${params.SONAR_URL} -Dsonar.login=${params.SONAR_TOKEN}"
-
-            def content = readFile "$WORKSPACE/build/sonar/report-task.txt"
             buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: gradleTasks
             buildInfo.env.collect()
 
-            Properties properties = new Properties()
-            InputStream is = new ByteArrayInputStream(content.getBytes());
-            properties.load(is)
-            is.close()
+            def properties = readReport("$WORKSPACE/build/sonar/report-task.txt")
             rtGradle.deployer.addProperty("ceTaskId", properties.ceTaskId)
             server.publishBuildInfo buildInfo
         }
