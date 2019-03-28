@@ -44,6 +44,7 @@ timestamps {
         def server
         def rtUrl
         def rtGradle
+        def qg
 
         if (! params.RT_SERVER_ID || ! params.RT_RESOLVER_REPO || ! params.RT_DEPLOYER_REPO || ! params.SONAR_SERVER_ID) {
             throw new Exception("Missing required parameter")
@@ -65,8 +66,8 @@ timestamps {
                 buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: sonarGradleTasks
             }
 
-            timeout(time: 5, unit: 'minutes') {
-                def qg = waitForQualityGate()
+            timeout(time: 5, unit: 'MINUTES') {
+                qg = waitForQualityGate()
                 if (qg.status != 'OK') {
                     error "Pipeline aborted due to quality gate failure: ${qg.status}"
                 }
