@@ -15,7 +15,7 @@ properties(
 )
 
 def checkHttpResponseCode(httpResponse) {
-    def httpStatusCode = res.getStatus()
+    def httpStatusCode = httpResponse.getStatus()
     def respContent = httpResponse.getContent()
     if (httpStatusCode >= 400) {
         throw new Exception("HTTP request failed: ${respContent}")
