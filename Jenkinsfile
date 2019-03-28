@@ -5,8 +5,8 @@ properties(
                 string(description: 'Artifactory server ID', defaultValue: 'artifactory-entplus-us-west', name: 'RT_SERVER_ID'),
                 string(description: 'Resolver repo name', defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
                 string(description: 'Deployer repo name', defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
-                string(description: 'SonarQube URL', defaultValue: 'SonarQube server id', name: 'SONAR_SERVER_ID'),
                 string(description: 'Artifactory production repository', defaultValue: '', name: 'RT_PRODUCTION_REPO'),
+                string(description: 'SonarQube URL', defaultValue: 'SonarQube server id', name: 'SONAR_SERVER_ID'),
                 booleanParam(description: 'deployer repo name', defaultValue: true, name: 'XRAY_FAIL_BUILD'),
             ]
         )
@@ -65,6 +65,7 @@ timestamps {
         def server
         def rtGradle
         def rtUrl
+        def artifactoryCredentialsId
         def rtResolverRepoUrl
         def jobName = env.JOB_NAME
         def jobNumber = env.BUILD_NUMBER
@@ -75,12 +76,13 @@ timestamps {
 
         stage('Checkout') {
             checkout scm
-            server = Artifactory.server params.RT_SERVER_ID
-            rtUrl = server.url
-            rtResolverRepoUrl = "${rtUrl}/${params.RT_RESOLVER_REPO}"
         }
 
-        stage('Prepare Gradle Environment') {
+        stage('Prepare Build Environment') {
+            server = Artifactory.server params.RT_SERVER_ID
+            artifactoryCredentialId = server.credentialsId
+            rtUrl = server.url
+            rtResolverRepoUrl = "${rtUrl}/${params.RT_RESOLVER_REPO}"
             rtGradle = Artifactory.newGradleBuild()
             rtGradle.resolver server: server, repo: params.RT_RESOLVER_REPO
             rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
@@ -128,8 +130,7 @@ timestamps {
 
         stage('Promote Build') {
             def promotionConfig = [
-                    'targetRepo'         : "${params.RT_PRODUCTION_REPO_NAME}",
-
+                    'targetRepo'         : "${params.RT_PRODUCTION_REPO}",
                     'buildName'          : buildInfo.name,
                     'buildNumber'        : buildInfo.number,
                     'comment'            : 'Production ready build',
@@ -145,9 +146,9 @@ timestamps {
 
         stage("Create Release Bundle") {
 
-            rtServiceId = pipelineUtils.restGet("${rtUrl}/api/system/service_id", server.credentialsId)
+            rtServiceId = pipelineUtils.restGet("${rtUrl}/api/system/service_id", artifactoryCredentialId)
 
-            def aql = generateAQLQuery(params.RT_PRODUCTION_REPO_NAME, jobName, jobNumber)
+            def aql = generateAQLQuery(params.RT_PRODUCTION_REPO, jobName, jobNumber)
 
             def releaseBundleBody = [
                     'name': "${jobName}",
