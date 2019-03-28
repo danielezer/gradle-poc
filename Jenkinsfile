@@ -14,14 +14,25 @@ properties(
     ]
 )
 
-def restGet(String url) {
-    def res = httpRequest url: url, consoleLogResponseBody: true
+def checkHttpResponseCode(httpResponse) {
     def httpStatusCode = res.getStatus()
-    def respContent = res.getContent()
+    def respContent = httpResponse.getContent()
     if (httpStatusCode >= 400) {
         throw new Exception("HTTP request failed: ${respContent}")
     }
-    respContent
+    return respContent
+}
+
+def restGet(String url) {
+    def res = httpRequest url: url, consoleLogResponseBody: true
+    def resContent = checkHttpResponseCode(res)
+    resContent
+}
+
+def restPost(url, credentialId, body, contentType = 'APPLICATION_JSON') {
+    def res = httpRequest url: url, contentType: contentType, authentication: credentialId, httpMode: 'POST', requestBody: body, consoleLogResponseBody: true
+    def resContent = checkHttpResponseCode(res)
+    resContent
 }
 
 Properties getProperties(filename) {
@@ -140,6 +151,8 @@ timestamps {
                     'copy'               : true,
                     'failFast'           : true
             ]
+
+            println promotionConfig
 
             server.promote promotionConfig
         }
