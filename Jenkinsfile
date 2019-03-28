@@ -72,6 +72,11 @@ def generateAQLQuery(repoName, buildName, buildNumber) {
 
 timestamps {
     node('k8s') {
+        def rtProductionRepo = params.RT_PRODUCTION_REPO
+        def rtResolverRepo = params.RT_RESOLVER_REPO
+        def rtDeployerRepo = params.RT_DEPLOYER_REPO
+        def rtServerId = params.RT_SERVER_ID
+        def sonarServerId = params.SONAR_SERVER_ID
         def buildInfo
         def server
         def rtGradle
@@ -81,7 +86,7 @@ timestamps {
         def jobName = env.JOB_NAME
         def jobNumber = env.BUILD_NUMBER
 
-        if (! params.RT_SERVER_ID || ! params.RT_RESOLVER_REPO || ! params.RT_DEPLOYER_REPO || ! params.SONAR_SERVER_ID) {
+        if (! rtServerId || ! rtResolverRepo || ! rtDeployerRepo || ! sonarServerId || ! rtProductionRepo) {
             throw new Exception("Missing required parameter")
         }
 
@@ -90,18 +95,18 @@ timestamps {
         }
 
         stage('Prepare Build Environment') {
-            server = Artifactory.server params.RT_SERVER_ID
-            artifactoryCredentialId = server.credentialsId
+            server = Artifactory.server rtServerId
+            artifactoryCredentialsId = server.credentialsId
             rtUrl = server.url
-            rtResolverRepoUrl = "${rtUrl}/${params.RT_RESOLVER_REPO}"
+            rtResolverRepoUrl = "${rtUrl}/${rtResolverRepo}"
             rtGradle = Artifactory.newGradleBuild()
-            rtGradle.resolver server: server, repo: params.RT_RESOLVER_REPO
-            rtGradle.deployer server: server, repo: params.RT_DEPLOYER_REPO
+            rtGradle.resolver server: server, repo: rtResolverRepo
+            rtGradle.deployer server: server, repo: rtDeployerRepo
             rtGradle.useWrapper = true
         }
 
         stage('SonarQube scan') {
-            withSonarQubeEnv(params.SONAR_SERVER_ID) {
+            withSonarQubeEnv(sonarServerId) {
                 String sonarGradleTasks = "clean sonarqube -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=1.${jobNumber}"
                 buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: sonarGradleTasks
             }
@@ -141,12 +146,12 @@ timestamps {
 
         stage('Promote Build') {
             def promotionConfig = [
-                    'targetRepo'         : "${params.RT_PRODUCTION_REPO}",
+                    'targetRepo'         : rtProductionRepo,
                     'buildName'          : buildInfo.name,
                     'buildNumber'        : buildInfo.number,
                     'comment'            : 'Production ready build',
                     'status'             : 'Released',
-                    'sourceRepo'         : params.RT_DEPLOYER_REPO,
+                    'sourceRepo'         : rtDeployerRepo,
                     'includeDependencies': true,
                     'copy'               : true,
                     'failFast'           : true
@@ -159,9 +164,9 @@ timestamps {
 
         stage("Create Release Bundle") {
 
-            rtServiceId = pipelineUtils.restGet("${rtUrl}/api/system/service_id", artifactoryCredentialId)
+            rtServiceId = pipelineUtils.restGet("${rtUrl}/api/system/service_id", artifactoryCredentialsId)
 
-            def aql = generateAQLQuery(params.RT_PRODUCTION_REPO, jobName, jobNumber)
+            def aql = generateAQLQuery(rtProductionRepo, jobName, jobNumber)
 
             def releaseBundleBody = [
                     'name': "${jobName}",
@@ -183,15 +188,15 @@ timestamps {
             releaseBundleBodyJson = JsonOutput.toJson(releaseBundleBody)
 
 
-            res = pipelineUtils.restPost("${distributionUrl}/api/v1/release_bundle", artifactoryCredentialId, releaseBundleBodyJson)
+            pipelineUtils.restPost("${distributionUrl}/api/v1/release_bundle", artifactoryCredentialsId, releaseBundleBodyJson)
         }
 
         stage('Distribute release bundle') {
             def distributeReleaseBundleBody = readJSON file: 'distribute-release-bundle-body.json'
-            res = pipelineUtils.restPost("${distributionUrl}/api/v1/distribution/${releaseBundleName}/${buildNumber}", artifactoryCredentialId, distributeReleaseBundleBody.toString())
+            pipelineUtils.restPost("${distributionUrl}/api/v1/distribution/${releaseBundleName}/${buildNumber}", artifactoryCredentialsId, distributeReleaseBundleBody.toString())
 
             for (i = 0; true; i++) {
-                res = pipelineUtils.restGet("${distributionUrl}/api/v1/release_bundle/${releaseBundleName}/${buildNumber}/distribution", artifactoryCredentialId)
+                def res = pipelineUtils.restGet("${distributionUrl}/api/v1/release_bundle/${releaseBundleName}/${buildNumber}/distribution", artifactoryCredentialsId)
 
                 def jsonResult = readJSON text: res
                 def distributionStatus = jsonResult.status.unique()
