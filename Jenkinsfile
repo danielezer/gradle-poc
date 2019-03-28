@@ -6,7 +6,7 @@ properties(
                 string(description: 'Resolver repo name', defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
                 string(description: 'Deployer repo name', defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
                 string(description: 'SonarQube URL', defaultValue: 'SonarQube server id', name: 'SONAR_SERVER_ID'),
-                string(description: 'Artifactory production repository', defaultValue: '', name: 'RT_PRODUCTION_REPO_NAME'),
+                string(description: 'Artifactory production repository', defaultValue: '', name: 'RT_PRODUCTION_REPO'),
                 booleanParam(description: 'deployer repo name', defaultValue: true, name: 'XRAY_FAIL_BUILD'),
             ]
         )
