@@ -23,8 +23,8 @@ def checkHttpResponseCode(httpResponse) {
     return respContent
 }
 
-def restGet(String url) {
-    def res = httpRequest url: url, consoleLogResponseBody: true
+def restGet(String url, String credentialsId) {
+    def res = httpRequest url: url, consoleLogResponseBody: true, authentication: credentialsId
     def resContent = checkHttpResponseCode(res)
     resContent
 }
@@ -119,7 +119,7 @@ timestamps {
             }
 
             properties = getProperties("${WORKSPACE}/build/sonar/report-task.txt")
-            ceTaskReport = restGet(properties.ceTaskUrl)
+            ceTaskReport = restGet(properties.ceTaskUrl, null)
             ceTaskJson = jsonParse(ceTaskReport)
             rtGradle.deployer.addProperty("sonar.ceTaskId", properties.ceTaskId)
             rtGradle.deployer.addProperty("sonar.dashboardUrl", properties.dashboardUrl)
@@ -164,7 +164,7 @@ timestamps {
 
         stage("Create Release Bundle") {
 
-            rtServiceId = restGet("${rtUrl}/api/system/service_id", artifactoryCredentialsId)
+            def rtServiceId = restGet("${rtUrl}/api/system/service_id", artifactoryCredentialsId)
 
             def aql = generateAQLQuery(rtProductionRepo, jobName, jobNumber)
 
