@@ -81,10 +81,10 @@ timestamps {
         def server = Artifactory.server rtServerId
         def artifactoryCredentialsId = params.RT_CREDENTIALS_ID
         def rtUrl = server.url
-        def rtResolverRepoUrl = "${rtUrl}/${rtResolverRepo}"
         def rtProductionRepo = params.RT_PRODUCTION_REPO
-        def rtResolverRepo = params.RT_RESOLVER_REPO
         def rtDeployerRepo = params.RT_DEPLOYER_REPO
+        def rtResolverRepo = params.RT_RESOLVER_REPO
+        def rtResolverRepoUrl = "${rtUrl}/${rtResolverRepo}"
         def distributionUrl = params.DISTRIBUTION_URL
         def rtGradle
         def buildInfo
