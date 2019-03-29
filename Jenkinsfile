@@ -3,7 +3,7 @@ properties(
         parameters(
             [
                 string(description: 'Jenkins node label', defaultValue: 'pipes-default', name: 'JENKINS_NODE_LABEL'),
-                string(description: 'Artifactory server ID', defaultValue: 'us-soleng-artifactory', name: 'RT_SERVER_ID'),
+                string(description: 'Artifactory server ID', defaultValue: 'artifactory-azure', name: 'RT_SERVER_ID'),
                 credentials(description: 'Artifactory credentials ID', defaultValue: 'artifactory-azure', name: 'RT_CREDENTIALS_ID'),
                 string(description: 'Resolver repo name', defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
                 string(description: 'Deployer repo name', defaultValue: 'poc-gradle-dev-local', name: 'RT_DEPLOYER_REPO'),
