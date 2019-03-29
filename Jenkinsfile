@@ -108,7 +108,7 @@ timestamps {
 
         stage('SonarQube scan') {
             withSonarQubeEnv(sonarServerId) {
-                String sonarGradleTasks = "clean test sonarqube -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=1.${jobNumber}"
+                String sonarGradleTasks = "clean jacocoTestReport sonarqube -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=1.${jobNumber}"
                 buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: sonarGradleTasks
             }
 
