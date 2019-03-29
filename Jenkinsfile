@@ -2,12 +2,13 @@ properties(
     [
         parameters(
             [
+                string(description: 'Jenkins node label', defaultValue: 'pipes-default', name: 'JENKINS_NODE_LABEL'),
                 string(description: 'Artifactory server ID', defaultValue: 'us-soleng-artifactory', name: 'RT_SERVER_ID'),
-                credentials(description: 'Artifactory credentials ID', defaultValue: 'us-soleng-artifactory', name: 'RT_CREDENTIALS_ID'),
+                credentials(description: 'Artifactory credentials ID', defaultValue: 'artifactory-azure', name: 'RT_CREDENTIALS_ID'),
                 string(description: 'Resolver repo name', defaultValue: 'jcenter', name: 'RT_RESOLVER_REPO'),
-                string(description: 'Deployer repo name', defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
-                string(description: 'Artifactory production repository', defaultValue: '', name: 'RT_PRODUCTION_REPO'),
-                string(description: 'SonarQube URL', defaultValue: 'SonarQube server id', name: 'SONAR_SERVER_ID'),
+                string(description: 'Deployer repo name', defaultValue: 'poc-gradle-dev-local', name: 'RT_DEPLOYER_REPO'),
+                string(description: 'Artifactory production repository', defaultValue: 'poc-gradle-prod-local', name: 'RT_PRODUCTION_REPO'),
+                string(description: 'SonarQube server id', defaultValue: 'sonarqube-azure', name: 'SONAR_SERVER_ID'),
                 string(description: 'Distribution service url', defaultValue: '', name: 'DISTRIBUTION_URL'),
                 booleanParam(description: 'deployer repo name', defaultValue: true, name: 'XRAY_FAIL_BUILD'),
             ]
@@ -73,7 +74,7 @@ def generateAQLQuery(repoName, buildName, buildNumber) {
 }
 
 timestamps {
-    node('k8s') {
+    node(params.JENKINS_NODE_LABEL) {
         def jobName = env.JOB_NAME
         def jobNumber = env.BUILD_NUMBER
         def rtServerId = params.RT_SERVER_ID
