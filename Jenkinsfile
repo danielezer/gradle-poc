@@ -99,6 +99,7 @@ timestamps {
         stage('Prepare Build Environment') {
             server = Artifactory.server rtServerId
             artifactoryCredentialsId = server.credentialsId
+            println server.dump()
             rtUrl = server.url
             rtResolverRepoUrl = "${rtUrl}/${rtResolverRepo}"
             rtGradle = Artifactory.newGradleBuild()
