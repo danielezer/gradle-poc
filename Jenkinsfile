@@ -7,6 +7,7 @@ properties(
                 string(description: 'Deployer repo name', defaultValue: 'gradle-dev', name: 'RT_DEPLOYER_REPO'),
                 string(description: 'Artifactory production repository', defaultValue: '', name: 'RT_PRODUCTION_REPO'),
                 string(description: 'SonarQube URL', defaultValue: 'SonarQube server id', name: 'SONAR_SERVER_ID'),
+                string(description: 'Distribution URL', defaultValue: 'Distribution service url', name: 'DISTRIBUTION_URL'),
                 booleanParam(description: 'deployer repo name', defaultValue: true, name: 'XRAY_FAIL_BUILD'),
             ]
         )
@@ -85,6 +86,7 @@ timestamps {
         def rtResolverRepoUrl
         def jobName = env.JOB_NAME
         def jobNumber = env.BUILD_NUMBER
+        def distributionUrl = params.DISTRIBUTION_URL
 
         if (! rtServerId || ! rtResolverRepo || ! rtDeployerRepo || ! sonarServerId || ! rtProductionRepo) {
             throw new Exception("Missing required parameter")
