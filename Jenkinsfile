@@ -206,10 +206,10 @@ timestamps {
                 ]
             ]
             distributeReleaseBundleBody = JsonOutput.toJson(body)
-            restPost("${distributionUrl}/api/v1/distribution/${releaseBundleName}/${buildNumber}", artifactoryCredentialsId, distributeReleaseBundleBody.toString())
+            restPost("${distributionUrl}/api/v1/distribution/${releaseBundleName}/${jobNumber}", artifactoryCredentialsId, distributeReleaseBundleBody.toString())
 
             for (i = 0; true; i++) {
-                def res = restGet("${distributionUrl}/api/v1/release_bundle/${releaseBundleName}/${buildNumber}/distribution", artifactoryCredentialsId)
+                def res = restGet("${distributionUrl}/api/v1/release_bundle/${releaseBundleName}/${jobNumber}/distribution", artifactoryCredentialsId)
 
                 def jsonResult = readJSON text: res
                 def distributionStatus = jsonResult.status.unique()
