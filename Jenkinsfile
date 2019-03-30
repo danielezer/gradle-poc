@@ -195,7 +195,16 @@ timestamps {
         }
 
         stage('Distribute release bundle') {
-            def distributeReleaseBundleBody = readJSON file: 'distribute-release-bundle-body.json'
+            def body = [
+                "dry_run": false,
+                "distribution_rules": [
+                    [
+                        "service_name": "*",
+                        "site_name": "*"
+                    ]
+                ]
+            ]
+            distributeReleaseBundleBody = JsonOutput.toJson(body)
             restPost("${distributionUrl}/api/v1/distribution/${releaseBundleName}/${buildNumber}", artifactoryCredentialsId, distributeReleaseBundleBody.toString())
 
             for (i = 0; true; i++) {
