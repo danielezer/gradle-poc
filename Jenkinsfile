@@ -52,27 +52,27 @@ def jsonParse(text) {
 }
 
 def generateAQLQuery(repoName, buildName, buildNumber) {
-    aqlQuery = """
-            items.find({
-                \"\$and\": [
+    """
+    items.find({
+        \"\$and\": [
+                {
+                    \"repo\": {
+                    \"\$match\": \"${repoName}\"
+                }
+                },
+                {
+                    \"\$or\": [
                         {
-                            \"repo\": {
-                            \"\$match\": \"${repoName}\"
-                        }
-                        },
-                        {
-                            \"\$or\": [
-                                {
-                                    \"@build.name\": \"${buildName}\"
-                                }
-                        ]
-                        },
-                        {
-                            \"@build.number\": \"${buildNumber}\"
+                            \"@build.name\": \"${buildName}\"
                         }
                 ]
-            })
-            """.replaceAll(" ", "").replaceAll("\n", "")
+                },
+                {
+                    \"@build.number\": \"${buildNumber}\"
+                }
+        ]
+    })
+    """.replaceAll(" ", "").replaceAll("\n", "")
 }
 
 timestamps {
