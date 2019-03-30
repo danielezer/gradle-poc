@@ -79,6 +79,7 @@ timestamps {
     node(params.JENKINS_NODE_LABEL) {
         def jobName = env.JOB_NAME
         def jobNumber = env.BUILD_NUMBER
+        def releaseBundleName = jobName
         def rtServerId = params.RT_SERVER_ID
         def sonarServerId = params.SONAR_SERVER_ID
         def server = Artifactory.server rtServerId
@@ -172,7 +173,7 @@ timestamps {
             def aql = generateAQLQuery(rtProductionRepo, jobName, jobNumber)
 
             def releaseBundleBody = [
-                    'name': "${jobName}",
+                    'name': "${releaseBundleName}",
                     'version': "1.${jobNumber}",
                     'dry_run': false,
                     'sign_immediately': true,
