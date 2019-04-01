@@ -79,6 +79,7 @@ timestamps {
     node(params.JENKINS_NODE_LABEL) {
         def jobName = env.JOB_NAME
         def jobNumber = env.BUILD_NUMBER
+        def packageVersion = "1.${jobNumber}"
         def releaseBundleName = jobName
         def rtServerId = params.RT_SERVER_ID
         def sonarServerId = params.SONAR_SERVER_ID
@@ -111,7 +112,7 @@ timestamps {
 
         stage('SonarQube scan') {
             withSonarQubeEnv(sonarServerId) {
-                String sonarGradleTasks = "clean jacocoTestReport sonarqube -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=1.${jobNumber}"
+                String sonarGradleTasks = "clean jacocoTestReport sonarqube -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=${packageVersion}"
                 buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: sonarGradleTasks
             }
 
@@ -132,7 +133,7 @@ timestamps {
         }
 
         stage('Build & Deploy') {
-            String publishGradleTasks = "clean artifactoryPublish -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=1.${jobNumber}"
+            String publishGradleTasks = "clean artifactoryPublish -PrtResolverRepoUrl=${rtResolverRepoUrl} -Pversion=${packageVersion}"
             buildInfo = rtGradle.run buildFile: 'build.gradle', tasks: publishGradleTasks
             buildInfo.env.collect()
             server.publishBuildInfo buildInfo
@@ -174,7 +175,7 @@ timestamps {
 
             def releaseBundleBody = [
                     'name': "${releaseBundleName}",
-                    'version': "1.${jobNumber}",
+                    'version': "${packageVersion}",
                     'dry_run': false,
                     'sign_immediately': true,
                     'description': 'Release bundle for the example java-project',
@@ -200,16 +201,16 @@ timestamps {
                 "dry_run": false,
                 "distribution_rules": [
                     [
-                        "service_name": "*",
+                        "service_name": "Edge-WIP",
                         "site_name": "*"
                     ]
                 ]
             ]
             distributeReleaseBundleBody = JsonOutput.toJson(body)
-            restPost("${distributionUrl}/api/v1/distribution/${releaseBundleName}/1.${jobNumber}", artifactoryCredentialsId, distributeReleaseBundleBody.toString())
+            restPost("${distributionUrl}/api/v1/distribution/${releaseBundleName}/${packageVersion}", artifactoryCredentialsId, distributeReleaseBundleBody.toString())
 
             for (i = 0; true; i++) {
-                def res = restGet("${distributionUrl}/api/v1/release_bundle/${releaseBundleName}/1.${jobNumber}/distribution", artifactoryCredentialsId)
+                def res = restGet("${distributionUrl}/api/v1/release_bundle/${releaseBundleName}/${packageVersion}/distribution", artifactoryCredentialsId)
 
                 def jsonResult = readJSON text: res
                 def distributionStatus = jsonResult.status.unique()
