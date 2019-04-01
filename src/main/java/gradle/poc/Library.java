@@ -8,4 +8,8 @@ public class Library {
         return true;
 
     }
+
+    public boolean newMothodForDemo() {
+        return false;
+    }
 }
