@@ -146,7 +146,10 @@ timestamps {
                     'failBuild'      : params.XRAY_FAIL_BUILD
             ]
             def scanResult = server.xrayScan scanConfig
-            echo scanResult as String
+
+            if (currentBuild.result == 'FAILURE') {
+                throw new Exception("Error in Xray scan! ${scanResult}")
+            }
         }
 
         stage('Promote Build') {
