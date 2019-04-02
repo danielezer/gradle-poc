@@ -15,4 +15,10 @@ public class LibraryTest {
         Library classUnderTest = new Library();
         assertFalse("someLibraryMethod should return 'true'", classUnderTest.newMothodForDemo());
     }
+
+    @Test public void testNewMothodForDemo2() {
+        Library classUnderTest = new Library();
+        assertFalse("someLibraryMethod should return 'true'", classUnderTest.newMothodForDemo2());
+    }
+
 }
