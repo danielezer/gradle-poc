@@ -12,4 +12,8 @@ public class Library {
     public boolean newMothodForDemo() {
         return false;
     }
+
+    public boolean newMothodForDemo2() {
+        return false;
+    }
 }
